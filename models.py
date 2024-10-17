@@ -3,12 +3,9 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
-
 from datetime import datetime
 from datetime import date
-
 from decimal import Decimal
-
 
 
 class Base(DeclarativeBase):
