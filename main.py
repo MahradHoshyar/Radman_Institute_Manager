@@ -4,7 +4,6 @@ import models
 import schemas
 from models import SessionLocal, engine
 from sqlalchemy.orm import Session
-
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
@@ -25,15 +24,14 @@ def get_db():
 
 @app.post("/users/create", response_model=schemas.User)
 async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user(db, user_id=user.id)
-    if db_user:
-        raise HTTPException(status_code=400, detail="User Id already registered")
     return crud.create_user(db=db, user=user)
 
 
 @app.get("/users/", response_model=list[schemas.User])
 async def read_users(db: Session = Depends(get_db)):
     users = crud.get_users(db)
+    if not [*users]:
+        raise HTTPException(status_code=404, detail="user not found")
     return users
 
 
@@ -54,14 +52,18 @@ async def read_user_by_last_name(user_last_name: str, db: Session = Depends(get_
 
 
 @app.put("/users/update/{user_id}", response_model=schemas.User)
-async def update_user(user: schemas.UserUpdate, db: Session = Depends(get_db)):
-    db_user = crud.get_user(db, user_id=user.id)
+async def update_user(user: schemas.UserUpdate, user_id: int, db: Session = Depends(get_db)):
+    db_user = crud.get_user(db, user_id=user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="user not found!")
-    return crud.update_user(db=db, user=user)
+    return crud.update_user(db=db, user=user, user_id=user_id)
 
 
 @app.delete("/users/delete/{user_id}")
 async def delete_user(user_id: int, db: Session = Depends(get_db)):
-    await crud.delete_user_by_id(db=db, user_id=user_id)
-    return {"massage": f"user with id: {user_id} successfully deleted"}
+    db_user = crud.get_user(db, user_id=user_id)
+    if db_user:
+        crud.delete_user_by_id(db=db, user_id=user_id)
+        return {"massage": f"user with id: {user_id} successfully deleted"}
+    else:
+        raise HTTPException(status_code=404, detail="user not found!")
