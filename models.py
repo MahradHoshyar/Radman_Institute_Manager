@@ -6,6 +6,12 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from datetime import date
 from decimal import Decimal
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+
+engine = create_engine("postgresql+psycopg2://postgres:13821382@localhost:5432/postgres", echo=True)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class Base(DeclarativeBase):
@@ -116,7 +122,7 @@ class PermissionGroupDefine(Base):
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True, unique=True)
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True)
     gender: Mapped[str]
     first_name: Mapped[str]
     last_name: Mapped[str]
@@ -124,13 +130,13 @@ class User(Base):
     date_of_birth: Mapped[date]
     national_code: Mapped[str]
     phone_number: Mapped[str]
-    role_id = mapped_column(ForeignKey("roles.id"), default=0)
+    role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"), nullable=True)
     recruitment_date: Mapped[datetime]
     is_super_admin: Mapped[bool]
     is_panel_user: Mapped[bool]
-    permission_group_id = mapped_column(ForeignKey("permission_groups.id"), default=0)
+    permission_group_id: Mapped[int] = mapped_column(ForeignKey("permission_groups.id"), nullable=True)
     is_enabled: Mapped[bool] = mapped_column(default=True)
-    recorder_id = mapped_column(ForeignKey("users.id"), nullable=True)
+    recorder_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
     record_date: Mapped[datetime] = mapped_column(default=datetime.now())
 
     role: Mapped["Role"] = relationship(
